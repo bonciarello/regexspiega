@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RegexSpiega — Debugger di Espressioni Regolari Passo Passo</title>
+  <meta name="description" content="Testa e comprendi le espressioni regolari con spiegazione passo passo. Inserisci una regex e un testo campione, visualizza ogni match, i gruppi catturati e l'evidenziazione interattiva nel testo originale.">
+  <link rel="canonical" href="https://cristianporco.it/app/regexspiega/">
+
+  <meta property="og:title" content="RegexSpiega — Debugger di Espressioni Regolari Passo Passo">
+  <meta property="og:description" content="Testa e comprendi le espressioni regolari con spiegazione passo passo, evidenziazione colorata e gruppi di cattura interattivi.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cristianporco.it/app/regexspiega/">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="static/style.css">
+  <base href="./">
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a href="./" class="logo" aria-label="RegexSpiega — home">
+        <span class="logo-icon" aria-hidden="true">/{}/</span>
+        <span class="logo-text">RegexSpiega</span>
+      </a>
+      <p class="header-tagline">Debugger interattivo di espressioni regolari</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="sr-only">Debugger di Espressioni Regolari con Spiegazione Passo Passo</h1>
+
+    <section class="input-panel" aria-label="Inserimento dati">
+      <div class="field-group">
+        <label for="regex-input" class="field-label">
+          <span class="label-icon" aria-hidden="true">/</span>
+          Espressione regolare
+        </label>
+        <div class="regex-input-wrapper">
+          <span class="regex-delimiter" aria-hidden="true">/</span>
+          <input
+            type="text"
+            id="regex-input"
+            class="field-input mono"
+            placeholder="es. (\d{3})-(\d{2})-(\d{4})"
+            spellcheck="false"
+            autocomplete="off"
+            aria-describedby="regex-error regex-hint"
+          >
+          <span class="regex-delimiter" aria-hidden="true">/</span>
+          <div class="flag-toggles" role="group" aria-label="Flag della regex">
+            <button type="button" class="flag-btn" data-flag="i" title="Ignora maiuscole/minuscole (i)" aria-pressed="false">i</button>
+            <button type="button" class="flag-btn" data-flag="m" title="Multilinea (m)" aria-pressed="false">m</button>
+            <button type="button" class="flag-btn" data-flag="s" title="Dot all — . matcha anche newline (s)" aria-pressed="false">s</button>
+            <button type="button" class="flag-btn" data-flag="x" title="Verbose — ignora spazi e commenti (x)" aria-pressed="false">x</button>
+            <button type="button" class="flag-btn" data-flag="a" title="Solo ASCII (a)" aria-pressed="false">a</button>
+          </div>
+        </div>
+        <p id="regex-hint" class="field-hint">Incolla la tua regex qui. Le barre / sono solo decorative.</p>
+        <p id="regex-error" class="field-error" role="alert" hidden></p>
+      </div>
+
+      <div class="field-group">
+        <label for="text-input" class="field-label">
+          <span class="label-icon" aria-hidden="true">¶</span>
+          Testo campione
+        </label>
+        <textarea
+          id="text-input"
+          class="field-input mono"
+          rows="5"
+          placeholder="es. 123-45-6789 abc 987-65-4321"
+          spellcheck="false"
+          autocomplete="off"
+          aria-describedby="text-error"
+        ></textarea>
+        <p id="text-error" class="field-error" role="alert" hidden></p>
+      </div>
+
+      <button type="button" id="analyze-btn" class="btn-analyze">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <polyline points="4 17 10 11 4 17"></polyline>
+          <line x1="12" y1="17" x2="18" y2="11"></line>
+          <polyline points="18 17 12 11 18 17"></polyline>
+        </svg>
+        Analizza
+      </button>
+    </section>
+
+    <section class="results-panel" id="results-panel" aria-label="Risultati dell'analisi" hidden>
+      <div class="results-header">
+        <h2 class="results-title">Risultati</h2>
+        <div class="results-stats">
+          <span class="stat-badge" id="match-count">0 match</span>
+          <span class="stat-badge" id="flags-active" hidden></span>
+        </div>
+      </div>
+
+      <div class="text-display" id="text-display" aria-label="Testo originale con evidenziazione"></div>
+
+      <div class="matches-list" id="matches-list" aria-label="Elenco dei match trovati" role="list"></div>
+    </section>
+
+    <section class="error-panel" id="error-panel" aria-label="Errore" hidden>
+      <div class="error-card">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <div>
+          <h2 class="error-title">Errore nella regex</h2>
+          <p class="error-message" id="error-message"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>RegexSpiega — Analisi locale, nessun dato inviato a server esterni. <span class="footer-sep">·</span> <a href="robots.txt">robots.txt</a> <span class="footer-sep">·</span> <a href="sitemap.xml">sitemap.xml</a></p>
+  </footer>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "RegexSpiega",
+    "url": "https://cristianporco.it/app/regexspiega/",
+    "description": "Debugger interattivo di espressioni regolari con spiegazione passo passo, evidenziazione colorata e gruppi di cattura.",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "browserRequirements": "Requires JavaScript",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+  </script>
+
+  <script src="static/script.js"></script>
+</body>
+</html>
